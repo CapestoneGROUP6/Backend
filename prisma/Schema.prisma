@@ -1,0 +1,78 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model category {
+  ID    Int     @id @default(autoincrement())
+  NAME  String? @db.VarChar(45)
+  items items[]
+}
+
+model items {
+  ID               Int                @id @default(autoincrement())
+  NAME             String?            @db.VarChar(45)
+  PRICE            Decimal?           @db.Decimal(10, 0)
+  Category_ID      Int
+  User_ID          Int
+  IsAdminApproved  Int?               @db.TinyInt
+  Image            String?            @db.VarChar(200)
+  Description      String?            @db.Text
+  category         category           @relation(fields: [Category_ID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "fk_Items_Category")
+  user             user               @relation(fields: [User_ID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "fk_Items_User1")
+  orders_has_items orders_has_items[]
+
+  @@index([Category_ID], map: "fk_Items_Category_idx")
+  @@index([User_ID], map: "fk_Items_User1_idx")
+}
+
+model orders {
+  ID               Int                @id @default(autoincrement())
+  TOTAL            String?            @db.VarChar(45)
+  Orderscol        String?            @db.VarChar(45)
+  USER_ID          Int
+  Payments_ID      Int
+  payments         payments           @relation(fields: [Payments_ID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "fk_Orders_Payments1")
+  user             user               @relation(fields: [USER_ID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "fk_Orders_Shopper1")
+  orders_has_items orders_has_items[]
+
+  @@index([Payments_ID], map: "fk_Orders_Payments1_idx")
+  @@index([USER_ID], map: "fk_Orders_Shopper1_idx")
+}
+
+model orders_has_items {
+  Orders_ID Int
+  Items_ID  Int
+  items     items  @relation(fields: [Items_ID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "fk_Orders_has_Items_Items1")
+  orders    orders @relation(fields: [Orders_ID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "fk_Orders_has_Items_Orders1")
+
+  @@id([Orders_ID, Items_ID])
+  @@index([Items_ID], map: "fk_Orders_has_Items_Items1_idx")
+  @@index([Orders_ID], map: "fk_Orders_has_Items_Orders1_idx")
+}
+
+model payments {
+  ID        Int      @id @unique(map: "ID_UNIQUE") @default(autoincrement())
+  GatewayID Int?
+  Amout     Decimal? @db.Decimal(5, 2)
+  orders    orders[]
+}
+
+model user {
+  ID        Int      @id @default(autoincrement())
+  NAME      String?  @db.VarChar(45)
+  EMAIL     String?  @db.VarChar(45)
+  MOBILE    String?  @db.VarChar(45)
+  ADDRESS   String?  @db.VarChar(45)
+  ZIPCODE   String?  @db.VarChar(45)
+  ROLE      String?  @db.VarChar(45)
+  GOOGLE_ID String?  @db.VarChar(45)
+  Usercol   String?  @db.VarChar(45)
+  PASSWORD  String?  @db.VarChar(200)
+  items     items[]
+  orders    orders[]
+}
