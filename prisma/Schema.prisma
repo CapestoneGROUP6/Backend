@@ -1,10 +1,10 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
-}
-
-generator client {
-  provider = "prisma-client-js"
 }
 
 model category {
@@ -65,14 +65,14 @@ model payments {
 model user {
   ID        Int      @id @default(autoincrement())
   NAME      String?  @db.VarChar(45)
-  EMAIL     String?  @db.VarChar(45)
+  EMAIL     String   @db.VarChar(45)
   MOBILE    String?  @db.VarChar(45)
   ADDRESS   String?  @db.VarChar(45)
   ZIPCODE   String?  @db.VarChar(45)
   ROLE      String?  @db.VarChar(45)
   GOOGLE_ID String?  @db.VarChar(45)
-  Usercol   String?  @db.VarChar(45)
   PASSWORD  String?  @db.VarChar(200)
+  OTP       Int?
   items     items[]
   orders    orders[]
 }
