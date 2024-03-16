@@ -8,6 +8,8 @@ import client from "twilio";
 import sgMail from "@sendgrid/mail";
 import { userRouter } from "./routes/userRoutes";
 import cors from 'cors';
+import { categoriesRouter } from "./routes/categoriesRouter";
+import { productRouter } from "./routes/productRoutes";
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
@@ -23,6 +25,8 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(bodyParser.json());
 
+app.use('/uploads', express.static('uploads'));
+
 app.get("/health", (req: Request, res: Response) => {
   res.send("Running");
 });
@@ -32,6 +36,9 @@ app.get("/test/email", testEmail);
 
 app.use("/auth", authRouter);
 app.use("/user", userRouter);
+app.use("/categories", categoriesRouter);
+app.use("/products", productRouter);
+
 
 app.listen(port, () => {
   console.log(`[server]: Server is running at http://localhost:${port}`);

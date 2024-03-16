@@ -3,69 +3,62 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "sqlserver"
   url      = env("DATABASE_URL")
 }
 
 model category {
-  ID    Int     @id @default(autoincrement())
+  ID    Int     @id(map: "PK__category__3214EC27589B195F") @default(autoincrement())
   NAME  String? @db.VarChar(45)
   items items[]
 }
 
 model items {
-  ID               Int                @id @default(autoincrement())
+  ID               Int                @id(map: "PK__items__3214EC27F6250454") @default(autoincrement())
   NAME             String?            @db.VarChar(45)
   PRICE            Decimal?           @db.Decimal(10, 0)
-  Category_ID      Int
-  User_ID          Int
+  Category_ID      Int?
+  User_ID          Int?
   IsAdminApproved  Int?               @db.TinyInt
   Image            String?            @db.VarChar(200)
+  BookFile         String?            @db.VarChar(200)
   Description      String?            @db.Text
-  category         category           @relation(fields: [Category_ID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "fk_Items_Category")
-  user             user               @relation(fields: [User_ID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "fk_Items_User1")
+  category         category?          @relation(fields: [Category_ID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "FK__items__Category___66603565")
+  user             user?              @relation(fields: [User_ID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "FK__items__User_ID__6754599E")
   orders_has_items orders_has_items[]
-
-  @@index([Category_ID], map: "fk_Items_Category_idx")
-  @@index([User_ID], map: "fk_Items_User1_idx")
 }
 
 model orders {
-  ID               Int                @id @default(autoincrement())
+  ID               Int                @id(map: "PK__orders__3214EC2715A799F3") @default(autoincrement())
   TOTAL            String?            @db.VarChar(45)
   Orderscol        String?            @db.VarChar(45)
-  USER_ID          Int
-  Payments_ID      Int
-  payments         payments           @relation(fields: [Payments_ID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "fk_Orders_Payments1")
-  user             user               @relation(fields: [USER_ID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "fk_Orders_Shopper1")
+  USER_ID          Int?
+  Payments_ID      Int?
+  payments         payments?          @relation(fields: [Payments_ID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "FK__orders__Payments__6B24EA82")
+  user             user?              @relation(fields: [USER_ID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "FK__orders__USER_ID__6A30C649")
   orders_has_items orders_has_items[]
-
-  @@index([Payments_ID], map: "fk_Orders_Payments1_idx")
-  @@index([USER_ID], map: "fk_Orders_Shopper1_idx")
 }
 
 model orders_has_items {
   Orders_ID Int
   Items_ID  Int
-  items     items  @relation(fields: [Items_ID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "fk_Orders_has_Items_Items1")
-  orders    orders @relation(fields: [Orders_ID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "fk_Orders_has_Items_Orders1")
+  items     items  @relation(fields: [Items_ID], references: [ID], onUpdate: NoAction, map: "FK__orders_ha__Items__6EF57B66")
+  orders    orders @relation(fields: [Orders_ID], references: [ID], onUpdate: NoAction, map: "FK__orders_ha__Order__6E01572D")
 
-  @@id([Orders_ID, Items_ID])
-  @@index([Items_ID], map: "fk_Orders_has_Items_Items1_idx")
-  @@index([Orders_ID], map: "fk_Orders_has_Items_Orders1_idx")
+  @@id([Orders_ID, Items_ID], map: "PK__orders_h__DDCB0B760DB1D6FD")
 }
 
 model payments {
-  ID        Int      @id @unique(map: "ID_UNIQUE") @default(autoincrement())
+  ID        Int      @id(map: "PK__payments__3214EC2788D1B297") @default(autoincrement())
   GatewayID Int?
   Amout     Decimal? @db.Decimal(5, 2)
   orders    orders[]
 }
 
 model user {
-  ID        Int      @id @default(autoincrement())
+  ID        Int      @id(map: "PK__user__3214EC270FFA87FE") @default(autoincrement())
   NAME      String?  @db.VarChar(45)
-  EMAIL     String   @db.VarChar(45)
+  EMAIL     String?  @db.VarChar(45)
   MOBILE    String?  @db.VarChar(45)
   ADDRESS   String?  @db.VarChar(45)
   ZIPCODE   String?  @db.VarChar(45)

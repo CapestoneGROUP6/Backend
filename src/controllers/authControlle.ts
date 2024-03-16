@@ -10,6 +10,7 @@ import { generate4DigitPassword } from "../utils/commonUtil";
 import { PrismaClient, user } from "@prisma/client";
 import { sendForgotPasswordEmail, sendForgotPasswordSMS } from "../comms/comms";
 import { JwtUtil } from "../utils/JwtUtil";
+import { CustomRequest } from "../customTypes";
 
 const prisma = new PrismaClient();
 
@@ -41,11 +42,11 @@ export type ResetPasswordRequest = {
 };
 
 export const login = async (
-  req: Request,
+  req: CustomRequest,
   res: Response,
   next: NextFunction
 ) => {
-  const { body } = req;
+  const { body, checkAdmin } = req;
   const data = body as LoginRequest;
   const { userName, password } = data || {};
 
@@ -75,6 +76,13 @@ export const login = async (
       });
     }
 
+    if(checkAdmin && existingUser.ROLE?.toLocaleLowerCase() !== 'admin') {
+      return res.json({
+        status: false,
+        message: "User cannot login as he is not admin",
+      });
+    }
+
     //Password matching...
     const isMAtching = await comparePasswords(
       password,
@@ -92,7 +100,7 @@ export const login = async (
       token: JwtUtil.generateToken({ id: existingUser.ID }),
     });
   } catch (error) {
-    return res.json({
+        return res.json({
       status: false,
       message: "Internal Server Error",
     });
@@ -100,7 +108,7 @@ export const login = async (
 };
 
 export const signup = async (
-  req: Request,
+  req: CustomRequest,
   res: Response,
   next: NextFunction
 ) => {
@@ -154,6 +162,80 @@ export const signup = async (
         EMAIL: email,
         NAME: userName,
         PASSWORD: hashedPassword,
+        ROLE: 'regular'
+      },
+    });
+    return res.json({
+      token: JwtUtil.generateToken({ id: response.ID }),
+      status: true,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.json({
+      status: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+
+
+export const adminsignup = async (
+  req: CustomRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  const { body } = req;
+  const data = body as SignupRequest;
+  const { userName, password, email } = data || {};
+
+  try {
+    //Validations
+
+    const userValidationStatus = validateUserName(userName);
+    const passwordValidationStatus = validatePassword(password);
+    const emailValidationStatus = validateEmail(email);
+
+    if (
+      !userValidationStatus.valid ||
+      !passwordValidationStatus.valid ||
+      !emailValidationStatus.valid
+    ) {
+      return res.json({
+        status: false,
+        message:
+          userValidationStatus.message ||
+          passwordValidationStatus.message ||
+          emailValidationStatus.message,
+      });
+    }
+
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          {
+            NAME: userName,
+          },
+          {
+            EMAIL: email,
+          },
+        ],
+      },
+    });
+    if (existingUser?.ID) {
+      return res.json({
+        status: false,
+        message: "Username or Email already exists in the System!!!",
+      });
+    }
+
+    const hashedPassword = await hashPassword(password);
+    const response = await prisma.user.create({
+      data: {
+        EMAIL: email,
+        NAME: userName,
+        PASSWORD: hashedPassword,
+        ROLE: 'admin'
       },
     });
     return res.json({
