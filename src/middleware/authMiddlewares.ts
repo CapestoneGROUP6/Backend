@@ -24,7 +24,7 @@ export class AuthMiddlewares {
 
       const user = await prisma.user.findFirst({
         where: {
-          ID: decoded.id,
+          ID: +decoded.id,
         },
       });
 
@@ -59,7 +59,7 @@ export class AuthMiddlewares {
 
       const user = await prisma.user.findFirst({
         where: {
-          ID: decoded.id,
+          ID: +decoded.id,
         },
       });
 

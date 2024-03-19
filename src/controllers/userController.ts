@@ -33,7 +33,7 @@ export const modifyProfile = async (
       res.json({ status: false });
     }
 
-    await prisma.user.update({
+    const newDetails = await prisma.user.update({
       where: {
         ID: user!.ID
       },
@@ -41,8 +41,10 @@ export const modifyProfile = async (
         ...details
       }
     })
-    res.json({ status: true, user });
+    const {PASSWORD, OTP, ROLE, GOOGLE_ID, ...rest} = newDetails
+    res.json({ status: true, user: {...rest} });
   } catch (error) {
+    console.log(error)
     res.json({
       status: false,
     });

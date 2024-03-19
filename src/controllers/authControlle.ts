@@ -46,7 +46,7 @@ export const login = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { body, checkAdmin } = req;
+  const { body } = req;
   const data = body as LoginRequest;
   const { userName, password } = data || {};
 
@@ -76,7 +76,74 @@ export const login = async (
       });
     }
 
-    if(checkAdmin && existingUser.ROLE?.toLocaleLowerCase() !== 'admin') {
+    if(existingUser.ROLE?.toLocaleLowerCase() === 'admin') {
+      return res.json({
+        status: false,
+        message: "User cannot login as he admin",
+      });
+    }
+
+    //Password matching...
+    const isMAtching = await comparePasswords(
+      password,
+      existingUser.PASSWORD || ""
+    );
+    if (!isMAtching) {
+      return res.json({
+        status: false,
+        message: "Invalid Password",
+      });
+    }
+
+    return res.json({
+      status: true,
+      token: JwtUtil.generateToken({ id: existingUser.ID }),
+    });
+  } catch (error) {
+        return res.json({
+      status: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+
+export const adminLOgin = async (
+  req: CustomRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  const { body } = req;
+  const data = body as LoginRequest;
+  const { userName, password } = data || {};
+
+  try {
+    //Validations
+
+    const userValidationStatus = validateUserName(userName);
+    const passwordValidationStatus = validatePassword(password);
+
+    if (!userValidationStatus.valid || !passwordValidationStatus.valid) {
+      return res.json({
+        status: false,
+        message:
+          userValidationStatus.message || passwordValidationStatus.message,
+      });
+    }
+
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        NAME: userName,
+      },
+    });
+    if (!existingUser?.ID) {
+      return res.json({
+        status: false,
+        message: "Username doesn't  exist in the system.",
+      });
+    }
+
+    if(existingUser.ROLE?.toLocaleLowerCase() !== 'admin') {
       return res.json({
         status: false,
         message: "User cannot login as he is not admin",
