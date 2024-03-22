@@ -10,6 +10,7 @@ import { userRouter } from "./routes/userRoutes";
 import cors from 'cors';
 import { categoriesRouter } from "./routes/categoriesRouter";
 import { productRouter } from "./routes/productRoutes";
+import { cartRouter } from "./routes/cartRoutes";
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
@@ -38,6 +39,7 @@ app.use("/auth", authRouter);
 app.use("/user", userRouter);
 app.use("/categories", categoriesRouter);
 app.use("/products", productRouter);
+app.use("/cart", cartRouter);
 
 
 app.listen(port, () => {

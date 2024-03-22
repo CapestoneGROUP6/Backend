@@ -69,3 +69,10 @@ model user {
   items     items[]
   orders    orders[]
 }
+
+model cart {
+  id     Int @id(map: "PK_cart") @default(autoincrement())
+  count  Int
+  userid Int
+  itemid Int
+}
