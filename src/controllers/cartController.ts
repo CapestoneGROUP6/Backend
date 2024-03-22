@@ -49,6 +49,15 @@ export const updateCartDetails = async (
         const { ID } = req.user!;
         const { itemid, count } = req.body;
 
+        const productinformation = await prisma.items.findFirst({
+            where: {
+                ID: +itemid
+            }
+        })
+        if(!productinformation) {
+            res.status(400).json({ status: false, message: "Item Not found" });
+        }
+
         const cartItem = await prisma.cart.findFirst({
             where: {
                 userid: +ID,
