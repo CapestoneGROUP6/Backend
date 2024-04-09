@@ -7,6 +7,15 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model cart {
+  id        Int     @id(map: "PK_cart") @default(autoincrement())
+  count     Int
+  userid    Int
+  itemid    Int
+  unitprice Decimal @db.Decimal(18, 2)
+  itemname  String? @db.VarChar(100)
+}
+
 model category {
   ID    Int     @id(map: "PK__category__3214EC27589B195F") @default(autoincrement())
   NAME  String? @db.VarChar(45)
@@ -14,65 +23,58 @@ model category {
 }
 
 model items {
-  ID               Int                @id(map: "PK__items__3214EC27F6250454") @default(autoincrement())
-  NAME             String?            @db.VarChar(45)
-  PRICE            Decimal?           @db.Decimal(10, 0)
-  Category_ID      Int?
-  User_ID          Int?
-  IsAdminApproved  Int?               @db.TinyInt
-  Image            String?            @db.VarChar(200)
-  BookFile         String?            @db.VarChar(200)
-  Description      String?            @db.Text
-  category         category?          @relation(fields: [Category_ID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "FK__items__Category___66603565")
-  user             user?              @relation(fields: [User_ID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "FK__items__User_ID__6754599E")
-  orders_has_items orders_has_items[]
+  ID              Int       @id(map: "PK__items__3214EC27F6250454") @default(autoincrement())
+  NAME            String?   @db.VarChar(45)
+  PRICE           Decimal?  @db.Decimal(10, 0)
+  Category_ID     Int?
+  User_ID         Int?
+  IsAdminApproved Int?      @db.TinyInt
+  Image           String?   @db.VarChar(200)
+  BookFile        String?   @db.VarChar(200)
+  Description     String?   @db.Text
+  category        category? @relation(fields: [Category_ID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "FK__items__Category___66603565")
+  user            user?     @relation(fields: [User_ID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "FK__items__User_ID__6754599E")
+}
+
+model order_item {
+  orderid  Int
+  itemid   Int
+  quantity Int
+
+  @@id([itemid, orderid], map: "PK_order_item")
 }
 
 model orders {
-  ID               Int                @id(map: "PK__orders__3214EC2715A799F3") @default(autoincrement())
-  TOTAL            String?            @db.VarChar(45)
-  Orderscol        String?            @db.VarChar(45)
-  USER_ID          Int?
-  Payments_ID      Int?
-  payments         payments?          @relation(fields: [Payments_ID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "FK__orders__Payments__6B24EA82")
-  user             user?              @relation(fields: [USER_ID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "FK__orders__USER_ID__6A30C649")
-  orders_has_items orders_has_items[]
-}
-
-model orders_has_items {
-  Orders_ID Int
-  Items_ID  Int
-  items     items  @relation(fields: [Items_ID], references: [ID], onUpdate: NoAction, map: "FK__orders_ha__Items__6EF57B66")
-  orders    orders @relation(fields: [Orders_ID], references: [ID], onUpdate: NoAction, map: "FK__orders_ha__Order__6E01572D")
-
-  @@id([Orders_ID, Items_ID], map: "PK__orders_h__DDCB0B760DB1D6FD")
+  address   String  @db.VarChar(500)
+  orderid   Int     @id(map: "PK_orders") @default(autoincrement())
+  userid    Int
+  total     Int
+  zipcode   String? @db.VarChar(20)
+  mobile    String? @db.VarChar(10)
+  email     String? @db.VarChar(50)
+  paymentid String? @db.VarChar(100)
+  date      String? @db.VarChar(50)
 }
 
 model payments {
-  ID        Int      @id(map: "PK__payments__3214EC2788D1B297") @default(autoincrement())
-  GatewayID Int?
-  Amout     Decimal? @db.Decimal(5, 2)
-  orders    orders[]
+  paymentid Int  @id(map: "PK_payments") @default(autoincrement())
+  status    Int?
+  amount    Int?
+  userid    Int?
 }
 
 model user {
-  ID        Int      @id(map: "PK__user__3214EC270FFA87FE") @default(autoincrement())
-  NAME      String?  @db.VarChar(45)
-  EMAIL     String?  @db.VarChar(45)
-  MOBILE    String?  @db.VarChar(45)
-  ADDRESS   String?  @db.VarChar(45)
-  ZIPCODE   String?  @db.VarChar(45)
-  ROLE      String?  @db.VarChar(45)
-  GOOGLE_ID String?  @db.VarChar(45)
-  PASSWORD  String?  @db.VarChar(200)
-  OTP       Int?
-  items     items[]
-  orders    orders[]
-}
-
-model cart {
-  id     Int @id(map: "PK_cart") @default(autoincrement())
-  count  Int
-  userid Int
-  itemid Int
+  ID               Int     @id(map: "PK__user__3214EC270FFA87FE") @default(autoincrement())
+  NAME             String? @db.VarChar(45)
+  EMAIL            String? @db.VarChar(45)
+  MOBILE           String? @db.VarChar(45)
+  ADDRESS          String? @db.VarChar(45)
+  ZIPCODE          String? @db.VarChar(45)
+  ROLE             String? @db.VarChar(45)
+  GOOGLE_ID        String? @db.VarChar(45)
+  PASSWORD         String? @db.VarChar(200)
+  OTP              Int?
+  disabled         Int     @default(0, map: "DEFAULT_user_disabled") @db.SmallInt
+  stripecustomerid String? @db.VarChar(100)
+  items            items[]
 }

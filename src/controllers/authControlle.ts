@@ -10,7 +10,7 @@ import { generate4DigitPassword } from "../utils/commonUtil";
 import { PrismaClient, user } from "@prisma/client";
 import { sendForgotPasswordEmail, sendForgotPasswordSMS } from "../comms/comms";
 import { JwtUtil } from "../utils/JwtUtil";
-import { CustomRequest } from "../customTypes";
+import { CustomRequest, GoogleLinkRequest } from "../customTypes";
 
 const prisma = new PrismaClient();
 
@@ -69,17 +69,24 @@ export const login = async (
         NAME: userName,
       },
     });
-    if (!existingUser?.ID) {
+    if (!existingUser || !existingUser?.ID) {
       return res.json({
         status: false,
         message: "Username doesn't  exist in the system.",
       });
     }
 
-    if(existingUser.ROLE?.toLocaleLowerCase() === 'admin') {
+    if (existingUser.ROLE?.toLocaleLowerCase() === 'admin') {
       return res.json({
         status: false,
         message: "User cannot login as he admin",
+      });
+    }
+
+    if (existingUser.disabled === 1) {
+      return res.json({
+        status: false,
+        message: "Your Account has been disabled by Admin",
       });
     }
 
@@ -100,12 +107,80 @@ export const login = async (
       token: JwtUtil.generateToken({ id: existingUser.ID }),
     });
   } catch (error) {
-        return res.json({
+    return res.json({
       status: false,
       message: "Internal Server Error",
     });
   }
 };
+
+  export const  googleAccountLink = async(req: CustomRequest, res: Response, next: NextFunction) => {
+  try {
+    const { email, uid, displayName, phoneNumber } = req.body as GoogleLinkRequest
+
+    if (!email || !uid || !displayName) {
+      return res.json({
+        status: false,
+        message: "DEtails Not REceived From GOogle",
+      });
+    }
+
+    const _user = await prisma.user.findFirst({
+      where:{
+        GOOGLE_ID: uid 
+      }
+    })
+
+    if (_user) {
+      return res.json({
+        status: true,
+        token: JwtUtil.generateToken({ id: _user.ID }),
+      });
+    }
+
+    const user = await prisma.user.findFirst({
+      where:{
+        EMAIL: email 
+      }
+    })
+    if (!user) {
+      const newUser = await prisma.user.create({
+        data: {
+          EMAIL: email,
+          NAME: displayName,
+          MOBILE: phoneNumber,
+          GOOGLE_ID: uid
+        }
+      })
+      return res.json({
+        status: true,
+        token: JwtUtil.generateToken({ id: newUser.ID }),
+      });
+    }
+
+    if (!user.GOOGLE_ID) {
+      await prisma.user.update({
+        where: {
+          ID: user.ID
+        },
+        data: {
+          GOOGLE_ID: uid
+        }
+      })
+    }
+
+    return res.json({
+      status: true,
+      token: JwtUtil.generateToken({ id: user.ID }),
+    });
+  } catch (error) {
+    console.log(error)
+    res.json({
+      status: false,
+      message: "Failed to link Google Account"
+    });
+  }
+}
 
 
 export const adminLOgin = async (
@@ -143,7 +218,7 @@ export const adminLOgin = async (
       });
     }
 
-    if(existingUser.ROLE?.toLocaleLowerCase() !== 'admin') {
+    if (existingUser.ROLE?.toLocaleLowerCase() !== 'admin') {
       return res.json({
         status: false,
         message: "User cannot login as he is not admin",
@@ -167,7 +242,7 @@ export const adminLOgin = async (
       token: JwtUtil.generateToken({ id: existingUser.ID }),
     });
   } catch (error) {
-        return res.json({
+    return res.json({
       status: false,
       message: "Internal Server Error",
     });

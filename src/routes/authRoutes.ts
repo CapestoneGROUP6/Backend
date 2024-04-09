@@ -1,5 +1,5 @@
 import express from 'express'
-import { adminLOgin, adminsignup, forgotPassword, login, resetPassword, signup } from '../controllers/authControlle'
+import { adminLOgin, adminsignup, forgotPassword, googleAccountLink, login, resetPassword, signup } from '../controllers/authControlle'
 import { AuthMiddlewares } from '../middleware/authMiddlewares'
 const router = express.Router()
 
@@ -7,6 +7,7 @@ router.post("/login", login)
 router.post("/signup", signup)
 router.post("/admin/signup" ,adminsignup), 
 router.post("/admin/login", adminLOgin)
+router.post("/google", googleAccountLink)
 
 
 router.post("/forgotpassword", forgotPassword)

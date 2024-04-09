@@ -40,6 +40,28 @@ export const getUserCart = async (
     }
 };
 
+
+export const clearCart = async (
+    req: CustomRequest,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const { ID } = req.user!;
+
+        const details = await prisma.cart.deleteMany({
+            where: {
+                userid: +ID
+            }
+        })
+        return res.json({ status: true });
+    } catch (error) {
+        res.json({
+            status: false,
+        });
+    }
+};
+
 export const updateCartDetails = async (
     req: CustomRequest,
     res: Response,
@@ -54,7 +76,7 @@ export const updateCartDetails = async (
                 ID: +itemid
             }
         })
-        if(!productinformation) {
+        if (!productinformation) {
             res.status(400).json({ status: false, message: "Item Not found" });
         }
 
@@ -70,7 +92,9 @@ export const updateCartDetails = async (
                 data: {
                     userid: +ID,
                     itemid: +itemid,
-                    count
+                    count,
+                    unitprice: productinformation!.PRICE as any,
+                    itemname: productinformation!.NAME
                 }
             });
             return res.json({ status: true, message: "Cart Updated." });
@@ -101,3 +125,28 @@ export const updateCartDetails = async (
     }
 };
 
+export const getProductInfoFromCart = async (
+    req: CustomRequest,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const { id } = req.params;
+        const { ID } = req.user!;
+
+        const details = await prisma.cart.findFirst({
+            where: {
+                userid: +ID,
+                itemid: +id
+            }
+        })
+        return res.json({
+            count: details?.count || 0
+        });
+
+    } catch (error) {
+        res.json({
+            status: false,
+        });
+    }
+};

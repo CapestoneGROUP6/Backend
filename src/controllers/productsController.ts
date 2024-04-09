@@ -61,13 +61,17 @@ export const getProductDetailsBYCategory = async (
     try {
         const { id } = req.params;
 
-        const details = await prisma.items.findMany({
-            where: {
+        const filter = {} as any
+        if(id) {
+            filter.where = {
                 Category_ID: +id
             }
-        })
+        }
+
+        const details = await prisma.items.findMany(filter)
         return res.json(details);
     } catch (error) {
+        console.log(error)
         res.json({
             status: false,
         });

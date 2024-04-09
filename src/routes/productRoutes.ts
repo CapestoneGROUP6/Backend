@@ -19,8 +19,8 @@ const upload = multer({ storage: storage });
 
 
 router.get("/", getAllProducts);
+router.get("/category/:id?", getProductDetailsBYCategory);
 router.get("/:id", getProductDetails);
-router.get("/category/:id", getProductDetailsBYCategory);
 router.get("/admin/pendingapproval", AuthMiddlewares.isUserAdmin, getPendingApprovalProducts);
 router.post("/", AuthMiddlewares.authenticate, upload.fields([{ name: 'file', maxCount: 1 }, { name: 'bookFile', maxCount: 1 }]), addProduct);
 router.put("/", AuthMiddlewares.authenticate, upload.single('file'), editProduct);
