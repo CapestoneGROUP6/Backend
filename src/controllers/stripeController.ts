@@ -64,8 +64,8 @@ export const createStripeSession = async (
             payment_method_types: ['card'],
             line_items: lineItems as any,
             mode: 'payment',
-            success_url: `http://localhost:3001/checkout?payment=success`,
-            cancel_url: `http://localhost:3001/checkout?payment=success`,
+            success_url: `https://bookbazar.z9.web.core.windows.net/checkout?payment=success`,
+            cancel_url: `https://bookbazar.z9.web.core.windows.net/checkout?payment=success`,
             customer_email: EMAIL!,
         });
 
